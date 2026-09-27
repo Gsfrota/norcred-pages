@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 274 54" fill="none">
+  <defs>
+    <linearGradient id="n" x1="6" y1="9" x2="54" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset=".45" stop-color="#e4edfc"/><stop offset="1" stop-color="#3688fc"/></linearGradient>
+    <linearGradient id="stem" x1="51" y1="4" x2="51" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#2473f5"/><stop offset="1" stop-color="#438bfa"/></linearGradient>
+  </defs>
+  <path d="M6 45V10" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+  <path d="M52 10v35" stroke="url(#stem)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M6 10l46 35" stroke="url(#n)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M12 15v13L2 13V9Z" fill="#c0ccdf" opacity=".35"/>
+  <g fill="#f9fbff" font-family="Arial, sans-serif" font-size="37" font-weight="600" letter-spacing="1.9"><text x="81" y="41" textLength="190" lengthAdjust="spacingAndGlyphs">NORCRED</text></g>
+</svg>

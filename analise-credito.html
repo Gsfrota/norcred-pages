@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#061e52">
+  <meta name="description" content="Simule seu crédito na Norcred. Escolha o valor, o prazo e confira uma estimativa das parcelas, sem compromisso.">
+  <title>Simule seu crédito — Norcred</title>
+  <link rel="preload" href="assets/fonts/InterDisplay-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/InterDisplay-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="analise-credito.css">
+  <script src="analise-credito.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#simulacao">Pular para a simulação</a>
+  <main class="credit-flow">
+    <a class="back-link" href="norcred.html#simular"><span aria-hidden="true">←</span> Voltar ao início</a>
+    <article class="simulator" id="simulacao" aria-labelledby="simulation-title">
+      <header class="simulator__header">
+        <div class="simulator__intro">
+          <span class="calculator-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M9 7h6M9 11h1M14 11h1M9 15h1M14 15h1M9 18h1M14 18h1"/></svg></span>
+          <div><h1 id="simulation-title">Simule na hora</h1><p>Sem compromisso e sem consultar seu CPF</p></div>
+        </div>
+        <a class="simulator__brand" href="norcred.html" aria-label="Norcred — início"><img src="assets/footer-logo.svg" alt="NORCRED" width="274" height="54"><span>Mais possibilidades<br>para você</span></a>
+      </header>
+
+      <section id="simulation-step" aria-label="Simulação de crédito">
+        <div class="amount-field">
+          <label for="credit-amount">Quanto você precisa?</label>
+          <output class="amount-value" id="amount-value" for="credit-amount">R$ 5.000,00</output>
+          <input id="credit-amount" type="range" min="500" max="50000" step="500" value="5000" aria-describedby="amount-limits">
+          <div class="range-limits" id="amount-limits"><span>R$ 500</span><span>R$ 50.000</span></div>
+        </div>
+        <fieldset class="installments">
+          <legend>Em quantas parcelas?</legend>
+          <div class="installments__options">
+            <label><input type="radio" name="installments" value="12"><span>12x</span></label>
+            <label><input type="radio" name="installments" value="24" checked><span>24x</span></label>
+            <label><input type="radio" name="installments" value="36"><span>36x</span></label>
+          </div>
+        </fieldset>
+        <div class="estimate" aria-live="polite" aria-atomic="true">
+          <div><p>Parcela mensal estimada</p><strong id="monthly-payment">R$ 362,00</strong></div>
+          <div class="estimate__total"><span id="payment-count">em 24x</span><span>total <span id="total-payment">R$ 8.688,00</span></span></div>
+        </div>
+        <button class="primary-button" id="start-contact" type="button" disabled>Quero contratar agora <span aria-hidden="true">→</span></button>
+        <p class="simulation-note">*Simulação ilustrativa (taxa de 4,99% a.m.). Valores sujeitos à análise de crédito. Não inclui IOF, tarifas ou outros encargos; o CET será informado na proposta.</p>
+      </section>
+
+      <section id="contact-step" aria-labelledby="contact-title" hidden>
+        <button class="text-button" id="edit-simulation" type="button">← Ajustar simulação</button>
+        <p class="step-label">Seus dados de contato</p>
+        <h2 id="contact-title" tabindex="-1">Falta só mais um passo.</h2>
+        <p class="step-description">Informe seu WhatsApp e e-mail para continuar e ver o resultado da simulação.</p>
+        <p class="selection-summary" id="contact-summary"></p>
+        <form id="contact-form" novalidate>
+          <div class="contact-field">
+            <label for="whatsapp">Número do WhatsApp</label>
+            <input id="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 98765-4321" maxlength="25" required aria-describedby="whatsapp-help whatsapp-error">
+            <p class="field-help" id="whatsapp-help">Informe um celular brasileiro com DDD.</p>
+            <p class="field-error" id="whatsapp-error" aria-live="polite" hidden></p>
+          </div>
+          <div class="contact-field">
+            <label for="email">E-mail</label>
+            <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com.br" maxlength="254" required aria-describedby="email-error">
+            <p class="field-error" id="email-error" aria-live="polite" hidden></p>
+          </div>
+          <p class="contact-privacy">Nesta versão, seus dados ficam apenas nesta tela e não são enviados. Leia a <a href="politica-de-privacidade.html" target="_blank" rel="noopener">Política de Privacidade<span class="sr-only"> (abre em nova aba)</span></a>.</p>
+          <button class="primary-button" type="submit">Ver meu resultado <span aria-hidden="true">→</span></button>
+        </form>
+      </section>
+
+      <section id="result-step" aria-labelledby="result-title" hidden>
+        <p class="step-label">Resultado da simulação</p>
+        <h2 id="result-title" tabindex="-1">Seu próximo passo começa aqui.</h2>
+        <p class="step-description">Confira as condições estimadas para o valor que você escolheu.</p>
+        <dl class="result-details">
+          <div><dt>Valor solicitado</dt><dd id="result-amount"></dd></div>
+          <div class="result-details__featured"><dt>Parcela mensal estimada</dt><dd id="result-monthly"></dd></div>
+          <div><dt>Prazo</dt><dd id="result-count"></dd></div>
+          <div><dt>Total estimado</dt><dd id="result-total"></dd></div>
+          <div><dt>Taxa ilustrativa</dt><dd>4,99% ao mês</dd></div>
+        </dl>
+        <aside class="analysis-status"><strong>Análise de crédito ainda não realizada</strong><p>Esta é uma estimativa, não uma aprovação ou oferta de crédito. A análise depende da avaliação da instituição financeira. Seus dados de contato não foram enviados.</p></aside>
+        <button class="primary-button" id="restart-simulation" type="button">Simular outro valor <span aria-hidden="true">↗</span></button>
+        <a class="result-home" href="norcred.html">Voltar ao início</a>
+      </section>
+      <noscript><p class="no-script">Ative o JavaScript no seu navegador para ajustar os valores e continuar a simulação.</p></noscript>
+    </article>
+    <footer class="flow-footer"><span>Norcred · Mais possibilidades para você</span><a href="politica-de-privacidade.html" target="_blank" rel="noopener">Privacidade<span class="sr-only"> (abre em nova aba)</span></a></footer>
+  </main>
+</body>
+</html>
