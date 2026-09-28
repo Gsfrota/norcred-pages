@@ -13,7 +13,7 @@
     document.querySelectorAll(selector).forEach(scene => scenes.set(scene, children));
   };
 
-  addScene('.credit__intro', 'h2, p');
+  addScene('.credit__intro', 'h1, p');
   addScene('.solutions__header', 'h2');
   addScene('.solution-card', '.solution-card__content, .solution-card__art');
   addScene('.simulation-banner__panel', '.simulation-banner__content, .simulation-banner__phone');

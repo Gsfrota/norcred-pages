@@ -1,0 +1,123 @@
+/* The advisor's frame has its own proportions; quiz height never crops it. */
+.credit { --advisor-layout: desktop; background: #f8f9fa; }
+.credit::before { display: none; }
+.credit__visual {
+  position: absolute;
+  z-index: 0;
+  inset: 50% auto auto 0;
+  width: 54%;
+  aspect-ratio: 24 / 25;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.credit__visual picture, .credit__poster, .credit__visual .credit__motion {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  clip-path: none;
+  border-radius: 0;
+}
+.credit__poster { display: block; }
+.credit__content { z-index: 1; }
+.credit__form { z-index: 2; }
+.credit__visual .credit__motion { z-index: 1; opacity: 0; transition: opacity 200ms ease; }
+.credit__visual .credit__motion.has-frame { opacity: 1; }
+.credit__guidance {
+  margin: 0 0 .5rem;
+  padding: 0 0 .875rem;
+  border-bottom: 1px solid #e2e6eb;
+  min-height: 3.5em;
+  color: #425b72;
+  font: 500 .875rem/1.5 var(--font-text);
+  text-wrap: pretty;
+}
+.credit__motion-toggle {
+  position: absolute;
+  z-index: 3;
+  left: 1rem;
+  bottom: 1rem;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #c4cdd6;
+  border-radius: 50%;
+  background: rgb(248 249 250 / .92);
+  color: #153555;
+  font: 600 1rem var(--font-text);
+  cursor: pointer;
+}
+.credit__motion-toggle[hidden] { display: none; }
+.credit__motion-toggle:hover { background: #fff; border-color: #153555; }
+.credit__motion-toggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+@container norcred (width >= 64rem) {
+  .credit {
+    --credit-available-height: 100svh;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4cqw, 4rem);
+    min-height: var(--credit-available-height);
+    padding: clamp(.75rem, 1.5svh, 1.5rem) max(2rem, calc((100% - 80rem) / 2));
+  }
+  .credit__visual {
+    position: relative;
+    inset: auto;
+    width: min(100%, 38rem, calc((var(--credit-available-height) - 2rem) * .96));
+    justify-self: center;
+    transform: none;
+  }
+  .credit__content { top: 0; width: 100%; max-width: 36rem; margin: 0; padding: 0; }
+  .credit__intro { padding: 0; }
+  .credit__intro h2 { font-size: clamp(2rem, min(3.2cqw, 5.6svh), 3.5rem); line-height: 1.02; }
+  .credit__intro p { margin: .625rem 0 0; font-size: clamp(.9375rem, 1.15cqw, 1.125rem); line-height: 1.4; }
+  .credit__break { display: none; }
+  .credit__form { margin-top: .875rem; padding: 1rem 1.25rem; border-radius: 1rem; }
+  .credit__guidance { min-height: 0; margin-bottom: .25rem; padding-bottom: .5rem; font-size: .8125rem; }
+  .credit-quiz__progress { margin-bottom: .75rem; }
+  .credit-quiz__stage { min-height: 14rem; }
+  .credit-quiz__title { font-size: 1.375rem; }
+  .credit-quiz__hint { margin: .375rem 0 .75rem; font-size: .8125rem; }
+  .credit-quiz__options { gap: .5rem; }
+  .credit-quiz__options button { min-height: 44px; padding: .625rem .875rem; font-size: 1rem; }
+  .credit-quiz__next { display: none; }
+  .credit__privacy { margin-top: .75rem; font-size: .75rem; }
+  .credit__lock { flex-basis: 1rem; height: 1rem; }
+  .credit__field { min-height: 44px; border-radius: .5rem; }
+  .credit__field input { height: 1.5rem; font-size: 1rem; }
+  .credit__submit { min-height: 44px; margin-top: .625rem; padding: .625rem; font-size: 1rem; }
+  @media (max-height: 740px) {
+    .credit { gap: 2rem; padding-block: .625rem; }
+    .credit__intro h2 { font-size: clamp(1.75rem, 4.7svh, 2.125rem); }
+    .credit__intro p { margin-top: .375rem; font-size: .875rem; line-height: 1.25; }
+    .credit__form { margin-top: .625rem; padding: .75rem 1rem; }
+    .credit-quiz__stage { min-height: 12.75rem; }
+    .credit-quiz__hint { margin-bottom: .5rem; }
+    .credit__privacy { margin-top: .5rem; }
+  }
+}
+@container norcred (48rem <= width < 64rem) {
+  .credit { --advisor-layout: tablet; }
+  .credit__visual { width: 44%; aspect-ratio: 2 / 3; }
+}
+@container norcred (width < 48rem) {
+  .credit { --advisor-layout: mobile; min-height: 0; padding: 99cqw 0 2rem; background: #f8f9fa; }
+  .credit__visual { inset: 0 0 auto; width: 100%; aspect-ratio: 47 / 50; transform: none; }
+  .credit__content::before { display: none; }
+  .credit__intro { top: 10cqw; left: 6%; width: 43%; z-index: 2; }
+  .credit__intro h2 { font-size: 8cqw; line-height: 1.02; text-shadow: none; }
+  .credit__form {
+    width: 88%;
+    margin: 0 auto;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #e2e6eb;
+    border-radius: 1rem;
+    box-shadow: 0 12px 32px rgb(21 53 85 / .06);
+  }
+  .credit__form::before { display: none; }
+  .credit__guidance { min-height: 3.5em; font-size: .8125rem; }
+  .credit__motion-toggle { top: 81cqw; bottom: auto; left: 6%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .credit__visual .credit__motion, .credit__motion-toggle { display: none; }
+}

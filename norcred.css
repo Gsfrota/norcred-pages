@@ -413,13 +413,25 @@ a:focus-visible, button:focus-visible, .hero__content:focus-visible { outline: 3
   .credit__privacy { margin-top: 1.125rem; gap: .5rem; font-size: .8125rem; }
   .credit__lock { flex-basis: 1.25rem; height: 1.25rem; }
 }
+/* Tablets use a dedicated portrait column; text never overlays the advisor. */
+@container norcred (48rem <= width < 64rem) {
+  .credit { min-height: 40rem; padding: 0; }
+  .credit__background, .credit__motion { width: 44%; height: 100%; }
+  .credit__background { object-position: 20% top; }
+  .credit__motion { object-position: 32% top; }
+  .credit::before { display: none; }
+  .credit__content { width: 56%; margin: 0 0 0 auto; padding: 2.5rem 1.5rem; }
+  .credit__intro h2 { font-size: clamp(2rem, 4.3cqw, 2.65rem); line-height: 1.04; }
+  .credit__intro p { font-size: 1.0625rem; line-height: 1.45; }
+  .credit__form { padding: 1.25rem; }
+}
 @media (prefers-reduced-motion: reduce) {
   .credit__submit { transition: none; }
 }
 
 /* Preserve the supplied consent artwork; live controls cover its printed fields. */
 @container norcred (width < 48rem) {
-  .credit { display: block; min-height: 177.68cqw; padding: 111.3cqw 0 23cqw; background: #e8e5e0 url('assets/credit-mobile-consent.png') center bottom / 100% auto no-repeat; }
+  .credit { display: block; min-height: 177.68cqw; padding: 103cqw 0 23cqw; background: #e8e5e0 url('assets/credit-mobile-consent.png') center bottom / 100% auto no-repeat; }
   .credit__background, .credit::before { display: none; }
   .credit__mobile-art { display: block; position: absolute; inset: 0 0 auto; z-index: -1; width: 100%; height: 177.68cqw; clip-path: inset(0 0 12%); }
   .credit__motion { inset: 0 0 auto; z-index: -1; height: 177.68cqw; object-fit: fill; clip-path: inset(0 0 12%); }
@@ -481,6 +493,68 @@ a:focus-visible, button:focus-visible, .hero__content:focus-visible { outline: 3
   .credit__consent input { appearance: auto; }
   .credit__consent input::before { display: none; }
   .credit__submit:disabled { color: GrayText; border-color: GrayText; }
+}
+
+/* Three questions share the same card and a stable, responsive stage. */
+.credit-quiz__header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.credit-quiz__back { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: 0; border: 0; background: transparent; color: #65718a; font: 500 .8125rem var(--font-text); cursor: pointer; }
+.credit-quiz__back span { font-size: 1.25rem; }
+.credit-quiz__back:disabled { visibility: hidden; }
+.credit-quiz__back:hover { color: #153555; }
+.credit-quiz__counter { color: #65718a; font: 400 .75rem var(--font-text); }
+.credit-quiz__counter strong { color: #153555; font-weight: 600; }
+.credit-quiz__progress { height: 4px; margin: 0 0 1.25rem; overflow: hidden; border-radius: 99px; background: #e3e7ee; }
+.credit-quiz__progress span { display: block; width: 33.333%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #153555, #c69640); transition: width 500ms cubic-bezier(.22, 1, .36, 1); }
+.credit-quiz__stage { min-height: 310px; }
+.credit-quiz__panel[hidden] { display: none; }
+.credit-quiz__title { margin: 0; color: #102f50; font: 700 clamp(1.25rem, 1.65cqw, 1.75rem)/1.2 var(--font-display); letter-spacing: -.025em; }
+.credit-quiz__title:focus { outline: none; }
+.credit-quiz__hint { margin: .6rem 0 1.2rem; color: #65718a; font: 400 .875rem/1.5 var(--font-text); }
+.credit-quiz__options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; }
+.credit-quiz__options button { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 56px; padding: .75rem 1rem; border: 1px solid #d7dce5; border-radius: .65rem; background: #fdfdff; color: #153555; font: 500 clamp(1rem, 1.25cqw, 1.25rem)/1.2 var(--font-display); text-align: left; cursor: pointer; transition: border-color 180ms, background 180ms, color 180ms, transform 180ms, box-shadow 180ms; }
+.credit-quiz__options button:last-child { grid-column: 1 / -1; }
+.credit-quiz__options button span { color: #a88a50; transition: transform 180ms; }
+.credit-quiz__options button[aria-pressed='true'] { color: #fff; background: #153555; border-color: #153555; box-shadow: 0 5px 14px rgb(21 53 85 / .15); }
+.credit-quiz__options button[aria-pressed='true'] span { color: #e4c68e; }
+.credit-quiz__options button:focus-visible, .credit-quiz__back:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.credit-quiz__next { margin: .875rem 0 0; color: #758198; font: 400 .75rem/1.5 var(--font-text); }
+@media (hover: hover) {
+  .credit-quiz__options button:hover { border-color: #b69b68; box-shadow: 0 4px 12px rgb(21 53 85 / .07); transform: translateY(-2px); }
+  .credit-quiz__options button:hover span { transform: translateX(3px); }
+}
+@container norcred (max-width: 767px) {
+  /* Reuse the original artwork as a foreground fingertip, keeping the full
+     photo underneath the card. No controls sit inside this small cutout. */
+  .credit__content::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    width: 100%;
+    height: 177.68cqw;
+    z-index: 1;
+    pointer-events: none;
+    background: url('assets/credit-mobile-consent.png') top / 100% 100% no-repeat;
+    clip-path: polygon(49% 56%, 53% 56%, 54.2% 58.5%, 54.2% 59.2%, 53.5% 59.6%, 52.6% 59.6%, 51.8% 59.1%);
+  }
+  .credit__motion {
+    z-index: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 57.4%, 55% 57.4%, 55% 59.8%, 48% 59.8%, 48% 57.4%, 0 57.4%);
+  }
+  .credit__motion.is-playing + .credit__content::before { visibility: hidden; }
+  .credit__intro { z-index: 2; }
+  .credit__form { background: #f7f7f9; }
+  .credit__form::before { top: -1cqw; }
+  .credit-quiz__title { font-size: clamp(1.25rem, 4.3cqw, 1.75rem); }
+  .credit-quiz__stage { min-height: 320px; }
+  .credit-quiz__options button { padding-inline: .875rem; font-size: clamp(1rem, 3.5cqw, 1.25rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .credit-quiz__progress span, .credit-quiz__options button, .credit-quiz__options button span { transition: none; }
+}
+@media (forced-colors: active) {
+  .credit-quiz__options button[aria-pressed='true'] { outline: 2px solid Highlight; }
+  .credit-quiz__progress { border: 1px solid CanvasText; }
+  .credit-quiz__progress span { background: Highlight; }
 }
 
 /* 8. SOLUTIONS — reference proportions at 1024px, with live copy and links. */
@@ -658,4 +732,8 @@ a:focus-visible, button:focus-visible, .hero__content:focus-visible { outline: 3
 }
 @media (prefers-reduced-motion: reduce) {
   .faq__item, .faq__chevron { transition: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header { animation: none !important; }
 }

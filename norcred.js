@@ -66,7 +66,7 @@ const NORCRED_CONFIG = Object.freeze({
   const hero = document.querySelector('.hero');
   if (!hero) return;
 
-  const header = hero.querySelector('.site-header');
+  const header = document.querySelector('.site-header');
   const toggle = header.querySelector('.menu-toggle');
   const nav = header.querySelector('.main-nav');
   const dialog = document.querySelector('.connection-dialog');
@@ -76,6 +76,12 @@ const NORCRED_CONFIG = Object.freeze({
     new IntersectionObserver(([entry]) => {
       floatingContact.classList.toggle('is-over-footer', entry.isIntersecting);
     }).observe(footer);
+  }
+  const testimonials = document.querySelector('.testimonials');
+  if (testimonials && floatingContact && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      floatingContact.classList.toggle('is-over-testimonials', entry.isIntersecting);
+    }, { threshold: 0.15 }).observe(testimonials);
   }
   const motionQuery = matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
   let pointerEnabled = false;
@@ -145,6 +151,10 @@ const NORCRED_CONFIG = Object.freeze({
   };
   document.querySelectorAll('[data-destination]').forEach(link => {
     const key = link.dataset.destination;
+    if (key === 'about' && document.querySelector('#sobre')) {
+      link.href = '#sobre';
+      return;
+    }
     if (key === 'solutions' && document.querySelector('#solucoes')) {
       link.href = '#solucoes';
       return;
@@ -183,6 +193,77 @@ const NORCRED_CONFIG = Object.freeze({
   const consentError = document.querySelector('#credit-consent-error');
   const consentStatus = document.querySelector('#credit-consent-status');
   const creditSubmit = creditForm?.querySelector('.credit__submit');
+  const quizPanels = [...document.querySelectorAll('[data-quiz-step]')];
+  const quizBack = creditForm?.querySelector('.credit-quiz__back');
+  const quizProgress = creditForm?.querySelector('.credit-quiz__progress');
+  const quizAnswers = [document.querySelector('#quiz-amount'), document.querySelector('#quiz-employment')];
+  const quizMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  let quizStep = 0;
+  let quizBusy = false;
+  let quizAnimation;
+
+  async function showQuizStep(next, { animate = true, focus = true } = {}) {
+    if (quizBusy || next === quizStep || !quizPanels[next]) return;
+    quizBusy = true;
+    const outgoing = quizPanels[quizStep];
+    const incoming = quizPanels[next];
+    const direction = next > quizStep ? 1 : -1;
+    const play = async (panel, frames, duration) => {
+      if (!animate || quizMotion.matches || !panel.animate) return;
+      quizAnimation = panel.animate(frames, { duration, easing: 'cubic-bezier(.22, 1, .36, 1)' });
+      await quizAnimation.finished.catch(() => {});
+      quizAnimation = null;
+    };
+    outgoing.inert = true;
+    quizBack.disabled = true;
+    await play(outgoing, [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: `translateX(${-direction * 20}px)` }], 180);
+    outgoing.hidden = true;
+    outgoing.inert = false;
+    incoming.hidden = false;
+    quizStep = next;
+    document.querySelector('#quiz-step-number').textContent = String(next + 1);
+    quizProgress.setAttribute('aria-valuenow', String(next + 1));
+    quizProgress.firstElementChild.style.width = `${(next + 1) / 3 * 100}%`;
+    incoming.inert = true;
+    await play(incoming, [{ opacity: 0, transform: `translateX(${direction * 24}px)` }, { opacity: 1, transform: 'translateX(0)' }], 340);
+    incoming.inert = false;
+    quizBack.disabled = next === 0;
+    quizBusy = false;
+    if (focus) incoming.querySelector('.credit-quiz__title').focus({ preventScroll: true });
+    creditForm.dispatchEvent(new CustomEvent('norcred:advisor', {
+      bubbles: true, detail: { type: 'step', step: next }
+    }));
+  }
+
+  quizPanels.slice(0, 2).forEach((panel, index) => {
+    panel.querySelectorAll('[data-answer]').forEach(button => {
+      button.addEventListener('click', () => {
+        if (quizBusy || quizStep !== index) return;
+        quizAnswers[index].value = button.dataset.answer;
+        panel.querySelectorAll('[data-answer]').forEach(option => option.setAttribute('aria-pressed', String(option === button)));
+        showQuizStep(index + 1);
+      });
+    });
+  });
+  quizBack?.addEventListener('click', () => {
+    showQuizStep(quizStep - 1);
+  });
+  quizMotion.addEventListener('change', () => {
+    if (quizMotion.matches) quizAnimation?.finish();
+  });
+  creditForm?.addEventListener('reset', () => {
+    quizAnimation?.finish();
+    // Finish any in-flight transition before restoring the first question.
+    const resetQuiz = () => {
+      if (quizBusy) { requestAnimationFrame(resetQuiz); return; }
+      quizAnswers.forEach(answer => { answer.value = ''; });
+      creditForm.querySelectorAll('[data-answer]').forEach(button => button.setAttribute('aria-pressed', 'false'));
+      cpfError.hidden = true;
+      cpfInput.removeAttribute('aria-invalid');
+      showQuizStep(0, { animate: false });
+    };
+    queueMicrotask(resetQuiz);
+  });
   function syncConsent({ announce = false } = {}) {
     const accepted = consent.checked;
     creditSubmit.disabled = !accepted;
@@ -219,110 +300,22 @@ const NORCRED_CONFIG = Object.freeze({
     }
     return true;
   }
-  const creditVideo = document.querySelector('.credit__motion');
-  const creditSection = document.querySelector('.credit');
-  const videoMotionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let animatedCPF = '';
-  let videoRequested = false;
-  let requestedCPF = '';
-  let videoSource = '';
-  let videoAttempt = 0;
-  const failedVideoSources = new Set();
-
-  function stopCreditVideo() {
-    videoAttempt++;
-    videoRequested = false;
-    requestedCPF = '';
-    if (!creditVideo) return;
-    creditVideo.classList.remove('is-playing');
-    creditVideo.pause();
-  }
-
-  function prepareCreditVideo() {
-    if (!creditVideo || !creditSection || videoMotionPreference.matches) return;
-    const layout = creditSection.clientWidth < 768 ? 'mobile' : 'desktop';
-    const extensions = creditVideo.canPlayType('video/mp4; codecs="avc1.640028"')
-      ? ['mp4', 'webm'] : ['webm', 'mp4'];
-    const source = extensions.map(extension => `assets/credit-${layout}-valid.${extension}`)
-      .find(candidate => !failedVideoSources.has(candidate));
-    if (!source || source === videoSource) return;
-    stopCreditVideo();
-    videoSource = source;
-    creditVideo.muted = true;
-    creditVideo.src = source;
-    creditVideo.preload = 'auto';
-    creditVideo.load();
-  }
-
+  // Only progress and validity leave the form; never send CPF or answers to media.
+  let advisorCPFValid = false;
   function syncCreditVideo() {
-    if (!creditVideo || !cpfInput) return;
-    const digits = cpfInput.value.replace(/\D/g, '');
-    if (!isValidCPF(digits)) {
-      animatedCPF = '';
-      stopCreditVideo();
-      return;
-    }
-    if (videoMotionPreference.matches || animatedCPF === digits || (videoRequested && requestedCPF === digits)) return;
-    if (videoRequested) stopCreditVideo();
-    prepareCreditVideo();
-    videoRequested = true;
-    requestedCPF = digits;
-    const attempt = ++videoAttempt;
-    creditVideo.currentTime = 0;
-    // Muted inline playback can begin on input, including paste/autofill.
-    // A browser/media failure simply leaves the original photo visible.
-    creditVideo.play().catch(() => {
-      // A rejected, older play() must never cancel a newer input attempt.
-      if (attempt === videoAttempt) stopCreditVideo();
-    });
+    const valid = isValidCPF(cpfInput.value);
+    if (valid === advisorCPFValid) return;
+    advisorCPFValid = valid;
+    creditForm.dispatchEvent(new CustomEvent('norcred:advisor', {
+      bubbles: true, detail: { type: 'validity', valid }
+    }));
   }
-
-  if (creditVideo && creditSection && creditForm) {
-    creditVideo.addEventListener('playing', () => {
-      if (videoRequested && isValidCPF(cpfInput.value) && !videoMotionPreference.matches) {
-        animatedCPF = cpfInput.value.replace(/\D/g, '');
-        creditVideo.classList.add('is-playing');
-      } else stopCreditVideo();
-    });
-    creditVideo.addEventListener('ended', stopCreditVideo);
-    creditVideo.addEventListener('error', () => {
-      const retry = videoRequested;
-      const failedSource = videoSource;
-      stopCreditVideo();
-      animatedCPF = '';
-      if (![3, 4].includes(creditVideo.error?.code)) return;
-      failedVideoSources.add(failedSource);
-      prepareCreditVideo();
-      if (retry && videoSource !== failedSource) syncCreditVideo();
-    });
-    cpfInput.addEventListener('change', syncCreditVideo);
-    cpfInput.addEventListener('focus', syncCreditVideo);
-    cpfInput.addEventListener('pointerup', syncCreditVideo);
-    creditForm.addEventListener('reset', () => {
-      animatedCPF = '';
-      stopCreditVideo();
-    });
-    videoMotionPreference.addEventListener('change', () => {
-      stopCreditVideo();
-      animatedCPF = '';
-    });
-    window.addEventListener('pagehide', stopCreditVideo);
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stopCreditVideo();
-    });
-    // Warm the short clip only near the form, and never for reduced motion.
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) prepareCreditVideo();
-        else stopCreditVideo();
-      }, { rootMargin: '240px' }).observe(creditSection);
-    }
-    if ('ResizeObserver' in window) {
-      new ResizeObserver(() => {
-        if (videoSource) prepareCreditVideo();
-      }).observe(creditSection);
-    }
-  }
+  creditForm?.addEventListener('reset', () => {
+    advisorCPFValid = false;
+    creditForm.dispatchEvent(new CustomEvent('norcred:advisor', {
+      bubbles: true, detail: { type: 'reset' }
+    }));
+  });
   if (creditForm && cpfInput) {
     cpfInput.addEventListener('input', () => {
       const raw = cpfInput.value;
@@ -347,6 +340,15 @@ const NORCRED_CONFIG = Object.freeze({
     });
     creditForm.addEventListener('submit', event => {
       event.preventDefault();
+      // Neither Enter nor requestSubmit can bypass the two questions.
+      if (quizBusy) return;
+      const unanswered = quizAnswers.findIndex(answer => !answer.value);
+      if (unanswered !== -1) {
+        if (quizStep !== unanswered) showQuizStep(unanswered);
+        else quizPanels[unanswered].querySelector('[data-answer]').focus();
+        return;
+      }
+      if (quizStep !== 2) { showQuizStep(2); return; }
       // Guard Enter/requestSubmit too, independently of the disabled button.
       if (!consent || !consent.checked) {
         if (consent) {

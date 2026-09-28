@@ -24,8 +24,6 @@
     amount.setAttribute('aria-valuetext', currency.format(principal));
     amount.style.setProperty('--progress', `${(principal - Number(amount.min)) / (Number(amount.max) - Number(amount.min)) * 100}%`);
     setText('monthly-payment', currency.format(payment));
-    setText('payment-count', `em ${months}x`);
-    setText('total-payment', currency.format(quote.total));
     setText('contact-summary', `${currency.format(principal)} em ${months} parcelas estimadas de ${currency.format(payment)}.`);
     setText('result-amount', currency.format(principal));
     setText('result-monthly', currency.format(payment));
